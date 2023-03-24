@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Catalog</title>
+  <style>
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-top: 16px solid #3498db;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+
+    .product-item {
+      margin: 10px;
+      width: 200px;
+    }
+
+    .product-img {
+      width: 100%;
+      height: auto;
+    }
+
+    #load-more-btn {
+      display: block;
+      margin: 20px auto;
+      background-color: #3498db;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #load-more-btn[disabled] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loader"></div>
+  <div class="product-list"></div>
+  <button id="load-more-btn">Load More</button>
+  <script>
+    const apiUrl = "https://api.airtable.com/v0/appElurJfZ2WmdIUg/Furniture/?api_key=keys1gmUsZYDi7y0g";
+
+    let products = [];
+    let offset = 0;
+    const limit = 5;
+    const productEl = document.querySelector(".product-list");
+    const loaderEl = document.querySelector(".loader");
+    const loadMoreBtn = document.querySelector("#load-more-btn");
+
+    const fetchProducts = async () => {
+      loaderEl.style.display = "block";
+      const response = await fetch(`${apiUrl}&offset=${offset}&limit=${limit}`);
+      const data = await response.json();
+      loaderEl.style.display = "none";
+      return data.records;
+    };
+
+    const renderProducts = () => {
+      products.slice(offset, offset + limit).forEach((product) => {
+        const img = document.createElement("img");
+        img.className = "product-img";
+        img.src = product.fields["Image"][0].url;
+        const productItem = document.createElement("div");
+        productItem.className = "product-item";
+        productItem.appendChild(img);
+        productEl.appendChild(productItem);
+      });
+    };
+
+    const loadMoreProducts = async () => {
+      offset += limit;
+      const newProducts = await fetchProducts();
+      products = [...products, ...newProducts];
+      renderProducts();
+      if (offset >= products.length) {
+        loadMoreBtn.disabled = true;
+      }
+    };
+
+    const init = async () => {
+      products = await fetchProducts();
+      renderProducts();
+      if (products.length <= limit) {
+        loadMoreBtn.disabled = true;
+      }
+    };
+
+    init();
+
+    loadMoreBtn.addEventListener("click", loadMoreProducts);
+
+    // función para verificar si se han cargado todos los productos
+function checkAllProductsLoaded() {
+  if (renderedProducts.length === allProducts.length) {
+    loadMoreBtn.style.display = "none"; // oculta el botón "Load More"
+  }
+}
+
+// función para cargar más productos
+function loadMore() {
+  // incrementa el contador para obtener los siguientes 5 productos
+  start += 5;
+  end += 5;
+  
+  // renderiza los siguientes 5 productos
+  renderProducts(allProducts.slice(start, end));
+  
+  // verifica si se han cargado todos los productos
+  checkAllProductsLoaded();
+}
+
+
+  </script>
+
+
+</body>
