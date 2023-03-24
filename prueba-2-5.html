@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Product Catalog</title>
+    <style>
+      img {
+        height: auto;
+        width: 200px;
+        object-fit: contain;
+      }
+      #load-more {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border: 1px solid black;
+        background-color: white;
+        cursor: pointer;
+      }
+      #load-more.disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      #loading {
+        display: none;
+        margin-top: 20px;
+      }
+      #error {
+        display: none;
+        margin-top: 20px;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="products"></div>
+    <button id="load-more">Load More</button>
+    <div id="loading">Loading...</div>
+    <div id="error"></div>
+    <script>
+      const productsURL =
+        'https://api.airtable.com/v0/appElurJfZ2WmdIUg/Furniture/?api_key=keys1gmUsZYDi7y0g';
+
+      let products = [];
+      let startIndex = 0;
+      let numToRender = 5;
+      let isLoading = false;
+
+      function renderProducts() {
+        const productDiv = document.getElementById('products');
+        for (let i = startIndex; i < startIndex + numToRender; i++) {
+          if (products[i]) {
+            const product = products[i];
+            const image = product.fields['Images'] ? product.fields['Images'][0].url : '';
+            productDiv.innerHTML += `<img src="${image}" alt="${product.fields['Name']}">`;
+          }
+        }
+        startIndex += numToRender;
+        if (startIndex >= products.length) {
+          const loadMoreButton = document.getElementById('load-more');
+          loadMoreButton.classList.add('disabled');
+        }
+      }
+
+      function fetchProducts() {
+        const loadMoreButton = document.getElementById('load-more');
+        loadMoreButton.classList.add('disabled');
+        isLoading = true;
+
+        fetch(productsURL)
+          .then(response => response.json())
+          .then(data => {
+            products = data.records;
+            renderProducts();
+            loadMoreButton.classList.remove('disabled');
+          })
+          .catch(error => {
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = 'Error: Could not fetch products.';
+            errorDiv.style.display = 'block';
+          })
+          .finally(() => {
+            isLoading = false;
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.display = 'none';
+          });
+      }
+
+      const loadMoreButton = document.getElementById('load-more');
+      loadMoreButton.addEventListener('click', function() {
+        if (isLoading) return;
+        renderProducts();
+      });
+
+      fetchProducts();
+    </script>
+  </body>
+</html>
