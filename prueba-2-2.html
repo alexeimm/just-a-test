@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Product Catalog</title>
+	<style>
+		.loader {
+			border: 8px solid #f3f3f3;
+			border-top: 8px solid #3498db;
+			border-radius: 50%;
+			width: 60px;
+			height: 60px;
+			animation: spin 2s linear infinite;
+			margin: auto;
+			margin-top: 50px;
+			display: block;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+	</style>
+</head>
+<body>
+	<h1>Product Catalog</h1>
+	<div id="product-container"></div>
+	<button id="load-more">Load More</button>
+
+	<div class="loader"></div>
+
+	<script>
+		// Load products from API endpoint
+		function loadProducts() {
+			const url = 'https://api.airtable.com/v0/appElurJfZ2WmdIUg/Furniture/?api_key=keys1gmUsZYDi7y0g';
+
+			// Display loader while the API call is being made
+			document.querySelector('.loader').style.display = 'block';
+
+			fetch(url)
+				.then(response => response.json())
+				.then(data => {
+					const productList = data.records.map(record => {
+						return {
+							id: record.id,
+							image: record.fields['Image'][0].url
+						}
+					});
+
+					// Hide loader once the API call is complete
+					document.querySelector('.loader').style.display = 'none';
+
+					// Render the first 5 products
+					renderProducts(0, 5);
+
+					// Attach event listener to "Load More" button
+					document.getElementById('load-more').addEventListener('click', loadMoreProducts);
+
+					// Render the product image for a given range of products
+					function renderProducts(start, count) {
+						const container = document.getElementById('product-container');
+
+						// Render up to `count` products starting from `start`
+						for (let i = start; i < start + count && i < productList.length; i++) {
+							// Create a div to hold the product image
+							const imageDiv = document.createElement('div');
+							imageDiv.classList.add('product-image');
+
+							// Create an image element and set its source to the product image URL
+							const image = document.createElement('img');
+							image.setAttribute('src', productList[i].image);
+
+							// Append the product image to the container
+							imageDiv.appendChild(image);
+							container.appendChild(imageDiv);
+						}
+					}
+
+
+                    function loadProducts() {
+    fetch('https://api.airtable.com/v0/appElurJfZ2WmdIUg/Furniture/?api_key=keys1gmUsZYDi7y0g')
+        .then(response => response.json())
+        .then(data => {
+            productList = data.records;
+            renderProducts(0, 5);
+
+            // Show the "Load More" button if there are more than 5 products
+            if (productList.length > 5) {
+                document.getElementById('load-more').style.display = 'block';
+            }
+
+            // Load more products when the "Load More" button is clicked
+            function loadMoreProducts() {
+                // Get the current count of rendered products
+                const count = document.querySelectorAll('.product-image').length;
+
+                // Render the next 5 products
+                renderProducts(count, 5);
+
+                // Hide the "Load More" button if all products have been rendered
+                if (count + 5 >= productList.length) {
+                    document.getElementById('load-more').style.display = 'none';
+                }
+            }
+            
+            // Add event listener to the "Load More" button
+            document.getElementById('load-more').addEventListener('click', loadMoreProducts);
+        })
+        .catch(error => console.error(error));
+}
+
+					
+
+		// Call loadProducts() when the page has finished loading
+		document.addEventListener('DOMContentLoaded', loadProducts);
+	</script>
+</body>
+</html>
